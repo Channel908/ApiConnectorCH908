@@ -6,13 +6,13 @@ using Newtonsoft.Json;
 
 namespace ApiConnectorCH908; 
 
-public class ReversProxy
+public class ReverseProxy
 {
     private readonly ILogger _logger;
 
-    public ReversProxy(ILoggerFactory loggerFactory)
+    public ReverseProxy(ILoggerFactory loggerFactory)
     {
-        _logger = loggerFactory.CreateLogger<ReversProxy>();
+        _logger = loggerFactory.CreateLogger<ReverseProxy>();
     }
 
     [Function("RP")]
