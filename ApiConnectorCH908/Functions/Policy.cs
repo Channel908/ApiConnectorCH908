@@ -1,18 +1,18 @@
-using System.Net;
-using Google.Protobuf.WellKnownTypes;
+using ApiConnectorCH908.Models;
+using ApiConnectorCH908.Service;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace ApiConnectorCH908;
+namespace ApiConnectorCH908.Functions;
 
 public class Policy
 {
     private readonly ILogger _logger;
-    private readonly GraphApi _graphApi;
+    private readonly GraphApiService _graphApi;
 
-    public Policy(ILoggerFactory loggerFactory, GraphApi graphApi)
+    public Policy(ILoggerFactory loggerFactory, GraphApiService graphApi)
     {
         _logger = loggerFactory.CreateLogger<Policy>();
         _graphApi = graphApi;

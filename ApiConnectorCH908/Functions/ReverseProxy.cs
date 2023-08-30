@@ -1,10 +1,8 @@
-using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
-namespace ApiConnectorCH908; 
+namespace ApiConnectorCH908.Functions;
 
 public class ReverseProxy
 {
@@ -23,7 +21,7 @@ public class ReverseProxy
 
         string name = req.Query["name"]!;
 
-        if(string.IsNullOrEmpty(name) ) 
+        if (string.IsNullOrEmpty(name))
             return req.CreateBadRequestResponse("Name parameter not supplied");
 
         var host = Environment.GetEnvironmentVariable("ProxyHost");
@@ -57,5 +55,5 @@ public class ReverseProxy
 
     }
 
-  
+
 }

@@ -7,9 +7,9 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApiConnectorCH908;
+namespace ApiConnectorCH908.Service;
 
-public class GraphApi : IDisposable
+public class GraphApiService : IDisposable
 {
     private GraphServiceClient? _graphClient { get; set; } = null;
 
@@ -18,7 +18,7 @@ public class GraphApi : IDisposable
     private readonly string? _principleId;
     private readonly string? _clientSecret;
 
-    public GraphApi()
+    public GraphApiService()
     {
         _clientId = Environment.GetEnvironmentVariable("ClientId");
         _tenantId = Environment.GetEnvironmentVariable("TenantId");
