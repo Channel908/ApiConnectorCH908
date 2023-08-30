@@ -22,6 +22,7 @@ public class Policy
     [Function("PolicyAdmin")]
     public HttpResponseData PolicyAdmin([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
+ 
         var roles = new
         {
             extension_Roles = "Admin"
@@ -33,31 +34,36 @@ public class Policy
     [Function("GetUserRoles")]
     public async Task<HttpResponseData> GetUserRoles([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
-      
-        var body = await new StreamReader(req.Body).ReadToEndAsync();
-
-        var requestorInfo = JsonConvert.DeserializeObject<RequestorInfo>(body);
-
-        var clientId = Environment.GetEnvironmentVariable("ClientId");
-
-        if (!requestorInfo.Validate(clientId))
+        try
         {
-            _logger.LogError("Invalid request data");
-            return req.CreateBadRequestResponse();
+
+            var body = await new StreamReader(req.Body).ReadToEndAsync();
+
+            var requestorInfo = JsonConvert.DeserializeObject<RequestorInfo>(body);
+
+            if (!requestorInfo.Validate(_graphApi.GraphApiServiceOptions.ClientId))
+            {
+                _logger.LogError("Invalid request data");
+                return req.CreateBadRequestResponse();
+            }
+
+            var roleList = await _graphApi.GetUserRoles(requestorInfo!.objectId);
+
+            var rolesToAdd = roleList?.Any() ?? false
+                ? string.Join(",", roleList)
+                : "User";
+
+            var roles = new
+            {
+                extension_Roles = rolesToAdd
+            };
+
+            return req.CreateJsonResponse(roles);
         }
-
-        var roleList = await _graphApi.GetUserRoles(requestorInfo!.objectId);
-
-        var rolesToAdd = roleList?.Any() ?? false
-            ? string.Join(",", roleList)
-            : "User";
-
-        var roles = new
+        catch (Exception ex)
         {
-            extension_Roles = rolesToAdd
-        };
-
-        return req.CreateJsonResponse(roles);
+           return req.CreateErrorResponse("Not Working");
+        }
     }
 }
 

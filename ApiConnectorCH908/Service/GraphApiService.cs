@@ -1,4 +1,5 @@
 ﻿using Azure.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
@@ -13,21 +14,18 @@ public class GraphApiService : IDisposable
 {
     private GraphServiceClient? _graphClient { get; set; } = null;
 
-    private readonly string? _clientId;
-    private readonly string? _tenantId;
-    private readonly string? _principleId;
-    private readonly string? _clientSecret;
+    public GraphApiServiceOptions GraphApiServiceOptions { get; internal set; }
 
-    public GraphApiService()
+    public GraphApiService(IOptions<GraphApiServiceOptions> options)
     {
-        _clientId = Environment.GetEnvironmentVariable("ClientId");
-        _tenantId = Environment.GetEnvironmentVariable("TenantId");
-        _principleId = Environment.GetEnvironmentVariable("PrincipleId");
-        _clientSecret = Environment.GetEnvironmentVariable("ClientSecret");
 
-        var clientSecretCredential = new ClientSecretCredential(_tenantId, _clientId, _clientSecret);
+        GraphApiServiceOptions = options.Value;
 
-        _graphClient = new GraphServiceClient(clientSecretCredential);
+
+        _graphClient = new GraphServiceClient
+        ( 
+            new ClientSecretCredential(options.Value.TenantId, options.Value.ClientId, options.Value.ClientSecret)
+        );
     }
 
 
@@ -40,7 +38,7 @@ public class GraphApiService : IDisposable
         {
             var userTask = _graphClient.Users[userId].AppRoleAssignments.GetAsync();
 
-            var principalTask = _graphClient.ServicePrincipals[_principleId].GetAsync();
+            var principalTask = _graphClient.ServicePrincipals[GraphApiServiceOptions.PrincipleId].GetAsync();
 
             await Task.WhenAll(userTask, principalTask);
 
@@ -64,10 +62,10 @@ public class GraphApiService : IDisposable
                                 .ToList();
 
             result?.Add("User");
-
+            result?.Add($"RoleTest {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
             return result!;
         }
-        catch
+        catch(Exception ex)
         {
             return Enumerable.Empty<string>();
 
