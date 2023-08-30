@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Functions.Worker.Http;
+﻿using ApiConnectorCH908.Models;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Graph.Models;
 using Newtonsoft.Json;
 using System.Net;
@@ -11,6 +12,22 @@ internal static class HttpExtensionMethods
     internal const string INTERNAL_SERVER_ERROR = "Internal Server Error";
     internal const string BAD_REQUEST = "Bad Request";
     internal const string BLOCK_MESSAGE = "Whoops, something went wrong";
+
+    internal static async Task<RequestorInfo?> GetRequestorInfoAsync(this HttpRequestData? req)
+    {
+        if(req is null)
+            return null;
+
+        var body = await new StreamReader(req.Body).ReadToEndAsync();
+
+        req.Body.Position = 0;
+
+        if(string.IsNullOrEmpty(body))
+            return null;
+
+        return JsonConvert.DeserializeObject<RequestorInfo>(body);
+
+    }
 
     internal static HttpResponseData CreateJsonResponse(this HttpRequestData req, object body, HttpStatusCode statusCode = HttpStatusCode.OK)
         => CreateResponse(req, JsonConvert.SerializeObject(body), statusCode);

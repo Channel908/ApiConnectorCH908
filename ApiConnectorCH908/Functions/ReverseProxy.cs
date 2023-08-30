@@ -17,6 +17,16 @@ public class ReverseProxy
     public async Task<HttpResponseData> RP([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
 
+        var requestorInfo = await req.GetRequestorInfoAsync();
+
+        var _clientId = Environment.GetEnvironmentVariable("AzureAD:ClientId");
+
+        if (!requestorInfo.Validate(_clientId))
+        {
+            _logger.LogError("Invalid request data");
+            return req.CreateBlockResponse();
+        }
+
         string code = req.Query["code"]!;
 
         string name = req.Query["name"]!;

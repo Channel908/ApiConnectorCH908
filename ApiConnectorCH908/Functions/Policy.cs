@@ -20,9 +20,10 @@ public class Policy
     }
 
     [Function("PolicyAdmin")]
-    public HttpResponseData PolicyAdmin([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
+    public async Task<HttpResponseData> PolicyAdmin([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
- 
+        var requestorInfo = await req.GetRequestorInfoAsync();
+
         var roles = new
         {
             extension_Roles = "Admin"
@@ -36,15 +37,12 @@ public class Policy
     {
         try
         {
-
-            var body = await new StreamReader(req.Body).ReadToEndAsync();
-
-            var requestorInfo = JsonConvert.DeserializeObject<RequestorInfo>(body);
+            var requestorInfo = await req.GetRequestorInfoAsync();
 
             if (!requestorInfo.Validate(_graphApi.GraphApiServiceOptions.ClientId))
             {
                 _logger.LogError("Invalid request data");
-                return req.CreateBadRequestResponse();
+                return req.CreateBlockResponse();
             }
 
             var roleList = await _graphApi.GetUserRoles(requestorInfo!.objectId);
