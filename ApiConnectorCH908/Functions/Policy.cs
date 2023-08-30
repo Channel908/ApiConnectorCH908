@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Security.Claims;
 
 namespace ApiConnectorCH908.Functions;
 
@@ -19,7 +20,7 @@ public class Policy
     }
 
     [Function("PolicyAdmin")]
-    public HttpResponseData PolicyAdmin([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
+    public HttpResponseData PolicyAdmin([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
         var roles = new
         {
@@ -30,16 +31,30 @@ public class Policy
     }
 
     [Function("GetUserRoles")]
-    public async Task<HttpResponseData> GetUserRoles([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
+    public async Task<HttpResponseData> GetUserRoles([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
+      
         var body = await new StreamReader(req.Body).ReadToEndAsync();
+
         var requestorInfo = JsonConvert.DeserializeObject<RequestorInfo>(body);
 
-        var roleList = await _graphApi.GetUserRoles(requestorInfo.objectId);
+        var clientId = Environment.GetEnvironmentVariable("ClientId");
+
+        if (!requestorInfo.Validate(clientId))
+        {
+            _logger.LogError("Invalid request data");
+            return req.CreateBadRequestResponse();
+        }
+
+        var roleList = await _graphApi.GetUserRoles(requestorInfo!.objectId);
+
+        var rolesToAdd = roleList?.Any() ?? false
+            ? string.Join(",", roleList)
+            : "User";
 
         var roles = new
         {
-            extension_Roles = string.Join(",", roleList)
+            extension_Roles = rolesToAdd
         };
 
         return req.CreateJsonResponse(roles);

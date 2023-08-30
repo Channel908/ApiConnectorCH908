@@ -14,7 +14,7 @@ public class ReverseProxy
     }
 
     [Function("RP")]
-    public async Task<HttpResponseData> RP([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
+    public async Task<HttpResponseData> RP([HttpTrigger(AuthorizationLevel.Admin, "get", "post")] HttpRequestData req)
     {
 
         string code = req.Query["code"]!;

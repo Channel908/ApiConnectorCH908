@@ -31,7 +31,7 @@ public class GraphApiService : IDisposable
     }
 
 
-    public async Task<IEnumerable<string>> GetUserRoles(string userId)
+    public async Task<IEnumerable<string>?> GetUserRoles(string userId)
     {
         if (_graphClient is null || string.IsNullOrEmpty(userId))
             return Enumerable.Empty<string>();
@@ -45,17 +45,29 @@ public class GraphApiService : IDisposable
             await Task.WhenAll(userTask, principalTask);
 
             var user = userTask.Result;
-            if (user?.Value is null || !user.Value.Any()) return Enumerable.Empty<string>();
+
+            if (user?.Value is null || !user.Value.Any()) 
+                return Enumerable.Empty<string>();
 
             var principal = principalTask.Result;
-            if (principal?.AppRoles is null || !principal.AppRoles.Any()) return Enumerable.Empty<string>();
 
-            var roleIds = user.Value.Select(x => x.AppRoleId.ToString()).ToList();
-            var result = principal.AppRoles.Where(x => roleIds.Contains(x.Id.ToString())).Select(x => x.Value).ToList();
+            if (principal?.AppRoles is null || !principal.AppRoles.Any()) 
+                return Enumerable.Empty<string>();
+
+            var roleIds = user.Value
+                                .Select(x => x.AppRoleId.ToString())
+                                .ToList();
+
+            var result = principal.AppRoles
+                                .Where(x => roleIds.Contains(x.Id.ToString()))
+                                .Select(x => x.Value)
+                                .ToList();
+
+            result?.Add("User");
 
             return result!;
         }
-        catch (Exception ex)
+        catch
         {
             return Enumerable.Empty<string>();
 
